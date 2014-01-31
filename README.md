@@ -22,7 +22,7 @@ Below is the steps necessary to get this to work.
  - Ensure that you run Bitcoin-Qt in testnet mode by following the guide http://suffix.be/blog/getting-started-bitcoin-testnet
  - Add this project to your library and then use the following code to mine bitcoins.
  
-<pre><code>
+```dart
 import 'package:dartminer/dartminer.dart';
  
  // Our main entry point.
@@ -50,6 +50,6 @@ void main() {
     print(result);
   });
 }
-</code></pre>
+```
  
  Enjoy...
