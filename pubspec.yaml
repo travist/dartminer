@@ -1,0 +1,8 @@
+name: dartminer
+author: Travis Tidwell <travist349@gmail.com>
+version: 0.0.2
+homepage: https://github.com/travist/dartminer
+description: A Bitcoin miner with Dart language.
+dependencies:
+  json: ">=0.9.1 <0.9.2"
+  utf: ">=0.9.0 <0.9.1"
