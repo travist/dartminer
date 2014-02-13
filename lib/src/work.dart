@@ -28,11 +28,11 @@ class Work {
     sha256 = new SHA256();
     nonce = 0;
     golden = false;
-    midstate = hexStringToList(work["midstate"]);
-    half = hexStringToList(work["data"].substring(0, 128));
-    data = hexStringToList(work["data"].substring(128, 256));
-    hash1 = hexStringToList(work["hash1"]);
-    target = hexStringToList(work["target"]);
+    midstate = hex2ReversedList(work["midstate"]);
+    half = hex2ReversedList(work["data"].substring(0, 128));
+    data = hex2ReversedList(work["data"].substring(128, 256));
+    hash1 = hex2ReversedList(work["hash1"]);
+    target = hex2ReversedList(work["target"]);
     print(this);
   }
   

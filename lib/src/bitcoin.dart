@@ -26,29 +26,22 @@ class Bitcoin {
     );
   }
   
-  /**
-   * Get the information.
-   */
-  Future<Map<String, String>> getinfo() {
-    return call("getinfo");
-  }
-  
-  /**
-   * Get the work for mining.
-   */
-  Future<Map<String, String>> getwork() {
-    return call("getwork");
-  }
+  // The bitcoind api's.
+  Future<dynamic> getinfo({params: const[]}) => call('getinfo', params: params);
+  Future<dynamic> getwork({params: const[]}) => call('getwork', params: params);
+  Future<dynamic> getblockhash({params: const[]}) => call('getblockhash', params: params);
+  Future<dynamic> getblock({params: const []}) => call('getblock', params: params);
+  Future<dynamic> getblocktemplate({params: const []}) => call("getblocktemplate", params: params);
   
   /**
    * Make a json-rpc call to our bitcoin daemon.
    */
-  Future<Map<String, String>> call(String method, {params: const []}) {
+  Future<dynamic> call(String method, {params: const []}) {
     // Create a new completer.
     final Completer completer = new Completer();
     
     // Set the message.
-    String message = JSON.stringify({
+    String message = JSON.encode({
       'jsonrpc': '1.0',
       "id": id,
       "method": method,
@@ -68,8 +61,8 @@ class Bitcoin {
       // Listen to the response.
       res.listen((data) {
         
-        // Get the result.
-        Map<String, String> result = JSON.parse(UTF.codepointsToString(data));
+        // Parse the response.
+        dynamic result = JSON.decode(UTF.codepointsToString(data));
         
         // If the result is set, then complete the future.
         if (result["result"] != null) {
