@@ -7,7 +7,7 @@ void main() {
   test('Test Mining', () {
     
     // Get the work.
-    getJSON('getwork.json').then(expectAsync(dynamic work) {
+    getJSON('getwork.json').then(expectAsync((dynamic work) {
       
       // Create the miner.
       Miner miner = new Miner(work);
