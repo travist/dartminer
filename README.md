@@ -37,17 +37,24 @@ void main() {
     "pass": "123123123123"
   });
   
-  // Get work from the client.
+  // Get work from the bitcoind.
   bitcoin.getwork().then((Map<String, String> work) {
     
+    // Work.
+    print(work);
+    
     // Create the miner.
-    Miner miner = new Miner(work);
+    Miner miner = new Miner.fromJSON(work);
     
     // Mine for gold!
-    List<int> result = miner.mine();
+    Map<String, String> result = miner.mine();
     
-    // Print the result!
-    print(result);
+    // If the result isn't null, then
+    if (result != null) {
+      print('Gold!');
+      print(result);
+      bitcoin.getwork(params: [result['data']]);
+    }
   });
 }
 ```
