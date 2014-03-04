@@ -3,14 +3,12 @@ part of dartminer;
 class Work {
   
   // The work data.
-  List<int> data;
-  List<int> half;
-  List<int> hash1;
-  List<int> midstate;
-  List<int> target;
+  Uint32List data;
+  Uint32List half;
+  Uint32List target;
   
   // The sha256 instance
-  SHA256 sha256;
+  doubleSHA256 sha256;
   
   // The nonce value.
   int nonce;
@@ -19,21 +17,62 @@ class Work {
   bool golden; 
   
   /**
-   * Constructor
+   * Create a new work object from the json object of 'getwork'
    * 
    * @param Map<String, String> work
    *   The JSON representation of a work object.
    */
-  Work(Map<String, String> work) {
-    sha256 = new SHA256();
-    nonce = 0;
+  Work.fromJSON(Map<String, String> work, [int startNonce = 0]) {
+    sha256 = new doubleSHA256();
+    nonce = startNonce;
     golden = false;
-    midstate = hex2ReversedList(work["midstate"]);
-    half = hex2ReversedList(work["data"].substring(0, 128));
-    data = hex2ReversedList(work["data"].substring(128, 256));
-    hash1 = hex2ReversedList(work["hash1"]);
-    target = hex2ReversedList(work["target"]);
-    print(this);
+    sha256.midstate = hexToList(work["midstate"]);
+    half = hexToList(work["data"].substring(0, 128));    
+    data = hexToList(work["data"].substring(128, 256));
+    target = hexToReversedList(work["target"]);
+  }
+  
+  /**
+   * Create work from a single data string.
+   */
+  Work.fromData(String hexData, [int startNonce = 0]) {
+    nonce = startNonce;
+    golden = false;
+    half = hexToList(hexData.substring(0, 128));    
+    data = hexToList(hexData.substring(128, 256));
+    sha256 = new doubleSHA256(half);
+    target = Block.bitsToTarget(hexData.substring(144, 152));
+  }
+  
+  /**
+   * Create a new work object from the header block.
+   * 
+   * @param Uint32List header
+   *   The little-endian Uint32List header.
+   *   
+   * @param Uint32List target
+   *   The target.
+   *   
+   * @param int startNonce
+   *   The nonce to start with.
+   */
+  Work.fromHeader(Uint32List header, Uint32List this.target, [int startNonce = 0]) {
+    nonce = startNonce;
+    golden = false;
+    
+    // Get the first half of the header.
+    half = header.sublist(0, 16);
+    
+    // Initialize the sha256.
+    sha256 = new doubleSHA256(half);
+    
+    // Set the data list.
+    data = new Uint32List(16);
+    data.setAll(0, header.sublist(16));
+    
+    // Finalize the data for hashing.
+    data[4] = 0x80000000;
+    data[15] = 640;
   }
   
   /**
@@ -44,15 +83,18 @@ class Work {
    */
   bool checkNonce() {
     data[3] = nonce;
-    sha256.reset(midstate);
     sha256.update(data);
-    for (int i = 0; i < 8; i++) {
-      hash1[i] = sha256.state[i];
-    }
-    sha256.reset();
-    sha256.update(hash1);
-    nonce++;
     return isGolden();
+  }
+  
+  /**
+   * Return if there is more work to be done.
+   * 
+   * @return bool
+   *   If there is more work to be done.
+   */
+  bool hasWork() {
+    return (nonce < 0xffffffff);
   }
   
   /**
@@ -60,40 +102,54 @@ class Work {
    */
   bool isGolden() {
     if (sha256.state[7] == 0) {
-      golden = sha256.state[6] <= target[6];
+      int j = 6;
+      for (int i = 1; j >= 0; i++, j--) {
+        int a = reverseBytesInWord(sha256.state[j]);
+        int b = target[i];
+        if (a == b) {
+          continue;
+        }
+        
+        // Return if the state is less than the target.
+        golden = (a < b);
+        return golden;
+      }
     }
+    
+    golden = false;
     return golden;
   }
   
   /**
    * Provide the response for the work performed.
    */
-  List<int> response() {
-    List<int> retVal = [];
+  Map<String, String> response() {
     
-    // If this is a golden nonce...
+    // Check if this is the golden hash.
     if (golden) {
       
-      // Build the response.
-      for (int i = 0; i < half.length; i++) {
-        retVal.add(half[i]); 
-      }
-      for (int i = 0; i < data.length; i++) {
-        retVal.add(data[i]);
-      }
+      // Get the result data.
+      Uint32List resultData = new Uint32List(32);
+      resultData.setAll(0, half);
+      resultData.setAll(16, data);
+      
+      // Return the result.
+      return {
+        'nonce': reverseBytesInWord(nonce).toString(),
+        'hash': listToReversedHex(sha256.state),
+        'data': listToHex(resultData)
+      };
     }
     
-    // Return the golden response.
-    return retVal;
+    // Return null if no golden ticket.
+    return null;
   }
   
   // Print this work as a string.
   String toString() {
     return {
-      "midstate": listToHex(midstate),
       "half": listToHex(half),
       "data": listToHex(data),
-      "hash1": listToHex(hash1),
       "target": listToHex(target)
     }.toString();
   }

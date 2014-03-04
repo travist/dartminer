@@ -10,19 +10,36 @@ void main() {
     "host": "127.0.0.1",
     "port": 18332,
     "user": "bitcoinrpc",
-    "pass": "123123123123"
+    "pass": "123123123123123"
   });
   
-  // Get work from the client.
-  bitcoin.getwork().then((Map<String, String> work) {
+  // Mine for gold.
+  void mineForGold() {
     
-    // Create the miner.
-    Miner miner = new Miner(work);
-    
-    // Mine for gold!
-    List<int> result = miner.mine();
-    
-    // Print the result!
-    print(result);
-  });
+    // Get work from the bitcoind.
+    bitcoin.getwork().then((Map<String, String> work) {
+      
+      // Work.
+      print(work);
+      
+      // Create the miner.
+      Miner miner = new Miner.fromJSON(work);
+      
+      // Mine for gold!
+      Map<String, String> result = miner.mine();
+      
+      // If the result isn't null, then
+      if (result != null) {
+        print('Gold!');
+        print(result);
+        bitcoin.getwork(params: [result['data']]);
+      }
+      
+      // Mine for more gold.
+      mineForGold();
+    });
+  }
+  
+  // Mine for gold.
+  mineForGold();
 }
