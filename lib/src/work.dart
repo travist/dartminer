@@ -28,7 +28,7 @@ class Work {
    * @param Map<String, String> work
    *   The JSON representation of a work object.
    */
-  Work.fromJSON(Map<String, String> work, {int this.expires: 0, int this.nonce: 0}) {
+  Work.fromJSON(Map<String, String> work, {int this.expires: 120, int this.nonce: 0}) {
     sha256 = new doubleSHA256();
     golden = false;
     created = now();
@@ -41,7 +41,7 @@ class Work {
   /**
    * Create work from a single data string.
    */
-  Work.fromData(String hexData, {int this.expires: 0, int this.nonce: 0}) {
+  Work.fromData(String hexData, {int this.expires: 120, int this.nonce: 0}) {
     golden = false;
     created = now();
     half = hexToList(hexData.substring(0, 128));    
@@ -59,7 +59,7 @@ class Work {
    * @param int startNonce
    *   The nonce to start with.
    */
-  Work.fromHeader(Uint32List header, Uint32List this.target, {int this.expires: 0, int this.nonce: 0}) {
+  Work.fromHeader(Uint32List header, Uint32List this.target, {int this.expires: 120, int this.nonce: 0}) {
     golden = false;
     created = now();
     
@@ -115,7 +115,7 @@ class Work {
     
     // If no expiration, then always return true.
     if (expires == 0) {
-      return true;
+      return false;
     }
     
     // Return if we still have time to mine.

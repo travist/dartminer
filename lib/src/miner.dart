@@ -11,7 +11,7 @@ class Miner {
    * @param Map work
    *   The JSON map of the work.
    */
-  Miner.fromJSON(Map<String, String> work, {int expires: 0, int nonce: 0}) {
+  Miner.fromJSON(Map<String, String> work, {int expires: 120, int nonce: 0}) {
     this.work = new Work.fromJSON(work, nonce: nonce, expires: expires);
   }
   
@@ -24,7 +24,7 @@ class Miner {
    * @param int startNonce
    *   The nonce to start with.
    */
-  Miner.fromHeader(Uint32List header, Uint32List target, {int expires: 0, int nonce: 0}) {
+  Miner.fromHeader(Uint32List header, Uint32List target, {int expires: 120, int nonce: 0}) {
     this.work = new Work.fromHeader(header, target, nonce: nonce, expires: expires);
   }
   
