@@ -55,9 +55,6 @@ void main() {
     }));
   });
   
-  test('Coinbase', () {
-  });
-  
   test('doubleHash', () {
     String test = '020000003c48a294584f90e58325c60ca82896d071826b45680a661cec4d424d00000000de6433d46c0c7f50d84a05aec77be0199176cdd47f77e344b6f50c84380fddba66dc47501d00ffff00000000';
     String hash = '913d5c7f6625529bde85c1d656591b64560b8bbf11213c4d22c4bad957c954ae';
