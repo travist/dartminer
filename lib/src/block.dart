@@ -41,7 +41,7 @@ class Block {
     time = block['time'];
     
     // The bits.
-    bits = block['bits'];
+    bits = getBits(block['bits']);
     
     // The nonce for this block.
     nonce = block['nonce'];
@@ -74,7 +74,7 @@ class Block {
     time = template['curtime'];
     
     // The bits. 
-    bits = template['bits'];
+    bits = getBits(template['bits']);
     
     // Get the target from the bits.
     target = bitsToTarget(bits);
@@ -128,7 +128,7 @@ class Block {
     // Set the bits
     offset += length;
     length = 8;
-    bits = data.substring(offset, offset + length);
+    bits = getBits(data.substring(offset, offset + length));
     target = bitsToTarget(bits);
     
     // Set the bits
@@ -137,6 +137,24 @@ class Block {
     nonce = int.parse(data.substring(offset, offset + length), radix: 16);
   }
   
+  /**
+   * The bits have a tendency to be the wrong endian within the template.
+   * Use this as a way to try and get the correct bits.
+   *
+   * @param String bits
+   *   The bits to get.
+   *
+   * @param String
+   *   The bits in the correct endianness.
+   */
+  String getBits(String bits) {
+    int bitsLength = int.parse(bits.substring(0, 2), radix: 16);
+    if (bitsLength > 32) {
+      return reverseBytes(bits);
+    }
+    return bits;
+  }
+
   /**
    * Convert the bits string to a target.
    */
