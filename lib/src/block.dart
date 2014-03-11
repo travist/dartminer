@@ -23,6 +23,9 @@ class Block {
   // The nonce for this block.
   int nonce;
   
+  // The expiration.
+  int expires;
+  
   // The list of transactions in this block.
   List<String> tx;
   
@@ -49,14 +52,56 @@ class Block {
     // Set the list of transactions.
     tx = block['tx'];
     
+    // No expiration.
+    expires = 0;
+    
     // Get the merkle root if not provided for us.
     merkleroot = (block['merkleroot'] != null) ? block['merkleroot'] : merkleRoot();
+  }
+  
+  /**
+   * Create a new block from a block template.
+   */
+  Block.fromTemplate(dynamic template) {
+    
+    // The version of the block.
+    version = template['version'];
+    
+    // The previous block hash.
+    previousblockhash = template['previousblockhash'];
+    
+    // The current time.
+    time = template['curtime'];
+    
+    // The bits. 
+    bits = template['bits'];
+    
+    // Get the target from the bits.
+    target = bitsToTarget(bits);
+    
+    // The nonce for this block.
+    nonce = template['nonce'];
+    
+    // Set the expiration.
+    expires = template['expires'];
+    
+    // Get the list of transactions.
+    tx = [];
+    template['transactions'].forEach((Map<String, String> transaction) {
+      tx.add(transaction['hash']);
+    });
+    
+    // Get the merkleroot.
+    merkleroot = reverseBytes(merkleRoot()); 
   }
   
   /**
    * Create a block header from data.
    */
   Block.fromData(String data) {
+    
+    // No expiration.
+    expires = 0;
     
     // Get the version.
     int offset = 0;
@@ -124,19 +169,24 @@ class Block {
   Work toWork() {
     
     // Return the work from header.
-    return new Work.fromHeader(getHeader(), target, reverseBytesInWord(nonce));
+    return new Work.fromHeader(
+      getHeader(), 
+      target, 
+      nonce: reverseBytesInWord(nonce),
+      expires: expires
+    );
   }
   
   /**
    * Form a block header from this block.
    */
-  Uint32List getHeader() {
+  Uint32List getHeader([bool reverseBits = true]) {
     Uint32List header = new Uint32List(32);
     header[0] = reverseBytesInWord(version);
     header.setAll(1, hexToReversedList(previousblockhash));
     header.setAll(9, hexToReversedList(merkleroot));
     header[17] = reverseBytesInWord(time);
-    header[18] = reverseBytesInWord(int.parse(bits, radix: 16));
+    header[18] = reverseBits ? reverseBytesInWord(int.parse(bits, radix: 16)) : int.parse(bits, radix: 16);
     header[19] = reverseBytesInWord(nonce);
     header[20] = 0x80000000;
     return header;

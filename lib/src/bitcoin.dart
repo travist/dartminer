@@ -31,7 +31,8 @@ class Bitcoin {
   Future<dynamic> getwork({params: const[]}) => call('getwork', params: params);
   Future<dynamic> getblockhash({params: const[]}) => call('getblockhash', params: params);
   Future<dynamic> getblock({params: const []}) => call('getblock', params: params);
-  Future<dynamic> getblocktemplate({params: const []}) => call("getblocktemplate", params: params);
+  Future<dynamic> getblocktemplate() => call("getblocktemplate", params: [{"capabilities": ["coinbasetxn", "workid", "coinbase/append"]}]);
+  Future<dynamic> submitblock({params: const []}) => call('submitblock', params: params);
   
   /**
    * Make a json-rpc call to our bitcoin daemon.

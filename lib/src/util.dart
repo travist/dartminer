@@ -1,6 +1,22 @@
 part of dartminer;
 
 /**
+ * Reverses the bytes in a half word.
+ * 
+ * @param int halfword
+ *   The 16 bit integer word to reverse the bytes.
+ *   
+ * @return int
+ *   The integer with all of the bytes reversed.
+ */
+int reverseBytesInHalfWord(int halfword) {
+  return (
+    ((halfword >> 8) & 0xFF) |
+    ((halfword & 0xFF) << 8)
+  );
+}
+
+/**
  * Reverses the bytes in an integer word.
  * 
  * @param int word
@@ -15,6 +31,28 @@ int reverseBytesInWord(int word) {
       ((word <<  8) & 0x00FF0000) |
       ((word >>  8) & 0x0000FF00) |
       ((word >> 24) & 0x000000FF)
+  );
+}
+
+/**
+ * Reverses the bytes in an 64 bit integer.
+ * 
+ * @param int word
+ *   The 64 bit integer word to reverse the bytes.
+ *   
+ * @return int
+ *   The integer with all of the bytes reversed.
+ */
+int reverseBytesInBigWord(int bigword) {
+  return (
+   ((bigword & 0xFF00000000000000) >> 56) | 
+   ((bigword & 0x00FF000000000000) >> 40) | 
+   ((bigword & 0x0000FF0000000000) >> 24) | 
+   ((bigword & 0x000000FF00000000) >> 8) | 
+   ((bigword & 0x00000000FF000000) << 8) |
+   ((bigword & 0x0000000000FF0000) << 24) | 
+   ((bigword & 0x000000000000FF00) << 40) |
+   ((bigword & 0x00000000000000FF) << 56)
   );
 }
 
@@ -45,7 +83,58 @@ String padNumString(String num, int len) {
 
 // Convert functions.
 String toHex(int num) => num.toRadixString(16).toLowerCase();
+String int2PaddedHex(int num, int len) => padNumString(toHex(num), len);
+String byte2LEHex(int byte) => padNumString(toHex((byte & 0xFF)), 2);
+String halfWord2LEHex(int halfword) => padNumString(toHex(reverseBytesInHalfWord(halfword)), 4);
 String word2LEHex(int word) => padNumString(toHex(reverseBytesInWord(word)), 8);
+String bigword2LEHex(int bigword) => padNumString(toHex(reverseBytesInBigWord(bigword)), 16);
+
+/**
+ * Reverses the bytes of a hex string.
+ * 
+ * @param String hex
+ *   The original hex string.
+ *   
+ * @return String
+ *   The bytes in reversed form.
+ */
+String reverseBytes(String hex) {
+  return Crypto.CryptoUtils.bytesToHex(hex2CodeUnits(hex).reversed.toList());
+}
+
+/**
+ *  Convert an unsigned integer to little endian varint ASCII Hex
+ *  
+ *  @param int value
+ *    The integer to create the LE variant hex.
+ *    
+ *  @return String
+ *    The LE variant hex.
+ */
+String int2VarIntHex(int x) {
+  if (x < 0xfd) {
+    return byte2LEHex(x);
+  }
+  else if (x <= 0xffff) {
+    return 'fd' + halfWord2LEHex(x);
+  }
+  else if (x <= 0xffffffff) {
+    return 'fe' + word2LEHex(x);
+  }
+  else {
+    return 'ff' + bigword2LEHex(x);
+  }
+}
+
+/**
+ * UNIX timestamp.
+ * 
+ * @return int
+ *   The UNIX timestamp.
+ */
+int now() {
+  return (new DateTime.now()).millisecondsSinceEpoch ~/ 1000;
+}
 
 /**
  * Convert a hexidecimal string to an array of 32bit unsigned integers.
@@ -91,21 +180,80 @@ Uint32List hexToReversedList(String hex, [bool reverseWords = true]) {
 }
 
 /**
+ * Convert a hexidecimal string to a list of codeUnits.
+ * 
+ * @param String hex
+ *   The hexidecimal string.
+ *   
+ * @return List<int>
+ *   The list of code units for the hex string.
+ */
+List<int> hex2CodeUnits(String hex) {
+  if ((hex.length % 2) != 0) {
+    hex = '0' + hex;
+  }
+  int listSize = hex.length ~/ 2;
+  List<int> arr = new List(listSize);
+  int index = 0;
+  int word = 0;
+  for (var i = 0; i < hex.length; i += 2) {
+    arr[index] = int.parse(hex.substring(i, (i + 2)), radix: 16);
+    index++;
+  }
+  return arr;
+}
+
+/**
  * Convert a list to a hex string.
  */
-String listToHex(Uint32List list) {
+String listToHex(Uint32List list, [bool reverseWords = true]) {
   StringBuffer buf = new StringBuffer();
   for (int part in list) {
-    buf.write(word2LEHex(part));
+    buf.write(reverseWords ? word2LEHex(part) : int2PaddedHex(part, 8));
   }
   return buf.toString();
 }
 
-String listToReversedHex(Uint32List list) {
+String listToReversedHex(Uint32List list, [bool reverseWords = true]) {
   StringBuffer buff = new StringBuffer();
   int i = list.length;
   while (i-- > 0) {
-    buff.write(word2LEHex(list[i]));
+    buff.write(reverseWords ? word2LEHex(list[i]) : int2PaddedHex(list[i], 8));
   }
   return buff.toString();
+}
+
+/**
+ * Reverse a string.
+ */
+String reverseString(String str) {
+  return new String.fromCharCodes(str.codeUnits.reversed.toList());
+}
+
+/**
+ * Perform a double hexidecimal hash.
+ * 
+ * @param String hex
+ *   The hexidecimal string to hash.
+ *   
+ * @return String
+ *   The double-hashed hexidecimal string.
+ */
+String doubleHash(String hex) {
+  Crypto.SHA256 h1 = new Crypto.SHA256();
+  Crypto.SHA256 h2 = new Crypto.SHA256();
+  h1.add(hex2CodeUnits(hex));
+  h2.add(h1.close());
+  return Crypto.CryptoUtils.bytesToHex(h2.close());
+}
+
+// Gets the JSON from a file.
+Future<dynamic> getJSON(String fileName) {
+  Completer completer = new Completer();
+  var file = new File(fileName);
+  Future<String> finishedReading = file.readAsString(encoding: ASCII);
+  finishedReading.then((String content) {
+    completer.complete(JSON.decode(content));
+  });
+  return completer.future;
 }

@@ -16,16 +16,22 @@ class Work {
   // If the nonce is golden.
   bool golden; 
   
+  // The expiration of this work.
+  int expires;
+  
+  // The created date.
+  int created;
+  
   /**
    * Create a new work object from the json object of 'getwork'
    * 
    * @param Map<String, String> work
    *   The JSON representation of a work object.
    */
-  Work.fromJSON(Map<String, String> work, [int startNonce = 0]) {
+  Work.fromJSON(Map<String, String> work, {int this.expires: 0, int this.nonce: 0}) {
     sha256 = new doubleSHA256();
-    nonce = startNonce;
     golden = false;
+    created = now();
     sha256.midstate = hexToList(work["midstate"]);
     half = hexToList(work["data"].substring(0, 128));    
     data = hexToList(work["data"].substring(128, 256));
@@ -35,9 +41,9 @@ class Work {
   /**
    * Create work from a single data string.
    */
-  Work.fromData(String hexData, [int startNonce = 0]) {
-    nonce = startNonce;
+  Work.fromData(String hexData, {int this.expires: 0, int this.nonce: 0}) {
     golden = false;
+    created = now();
     half = hexToList(hexData.substring(0, 128));    
     data = hexToList(hexData.substring(128, 256));
     sha256 = new doubleSHA256(half);
@@ -50,15 +56,12 @@ class Work {
    * @param Uint32List header
    *   The little-endian Uint32List header.
    *   
-   * @param Uint32List target
-   *   The target.
-   *   
    * @param int startNonce
    *   The nonce to start with.
    */
-  Work.fromHeader(Uint32List header, Uint32List this.target, [int startNonce = 0]) {
-    nonce = startNonce;
+  Work.fromHeader(Uint32List header, Uint32List this.target, {int this.expires: 0, int this.nonce: 0}) {
     golden = false;
+    created = now();
     
     // Get the first half of the header.
     half = header.sublist(0, 16);
@@ -98,6 +101,28 @@ class Work {
   }
   
   /**
+   * Make sure our mining has not expired.
+   * 
+   * @param int timestamp
+   *   The timestamp to check the expiration on.
+   */
+  bool expired([int timestamp = 0]) {
+    
+    // If there isn't a timestamp, then create one.
+    if (timestamp == 0) {
+      timestamp = now();
+    }
+    
+    // If no expiration, then always return true.
+    if (expires == 0) {
+      return true;
+    }
+    
+    // Return if we still have time to mine.
+    return (timestamp - created) > expires;
+  }
+  
+  /**
    * Check if the sha256 state is the golden ticket.
    */
   bool isGolden() {
@@ -123,7 +148,7 @@ class Work {
   /**
    * Provide the response for the work performed.
    */
-  Map<String, String> response() {
+  Map<String, String> response([bool reverseWords = true]) {
     
     // Check if this is the golden hash.
     if (golden) {
@@ -137,7 +162,7 @@ class Work {
       return {
         'nonce': reverseBytesInWord(nonce).toString(),
         'hash': listToReversedHex(sha256.state),
-        'data': listToHex(resultData)
+        'data': listToHex(resultData, reverseWords)
       };
     }
     

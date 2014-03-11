@@ -17,25 +17,31 @@ void main() {
   void mineForGold() {
     
     // Get work from the bitcoind.
-    bitcoin.getwork().then((Map<String, String> work) {
+    bitcoin.getblocktemplate().then((dynamic tpl) {
       
-      // Work.
-      print(work);
+      // The template we are mining.
+      print(tpl);
       
-      // Create the miner.
-      Miner miner = new Miner.fromJSON(work);
+      // Create the new template.
+      Template template = new Template.fromJSON(tpl, address: '1N438cAaGjY9cyZ5J5hgvixkch3hiu6XA1');
       
-      // Mine for gold!
-      Map<String, String> result = miner.mine();
+      // Mine for gold.
+      Map<String, String> result = template.mine();
       
-      // If the result isn't null, then
+      // See if there is a result.
       if (result != null) {
-        print('Gold!');
+        
+        // We found gold!
+        print('GOLD!');
+        
+        // Print the result.
         print(result);
-        bitcoin.getwork(params: [result['data']]);
+        
+        // Submit the block.
+        bitcoin.submitblock(params: [result['data']]);
       }
       
-      // Mine for more gold.
+      // Mine for more gold!
       mineForGold();
     });
   }

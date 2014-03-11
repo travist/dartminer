@@ -11,8 +11,8 @@ class Miner {
    * @param Map work
    *   The JSON map of the work.
    */
-  Miner.fromJSON(Map<String, String> work, [int startNonce = 0]) {
-    this.work = new Work.fromJSON(work, startNonce);
+  Miner.fromJSON(Map<String, String> work, {int expires: 0, int nonce: 0}) {
+    this.work = new Work.fromJSON(work, nonce: nonce, expires: expires);
   }
   
   /**
@@ -21,14 +21,11 @@ class Miner {
    * @param Uint32List header
    *   The little-endian Uint32List header.
    *   
-   * @param Uint32List target
-   *   The target.
-   *   
    * @param int startNonce
    *   The nonce to start with.
    */
-  Miner.fromHeader(Uint32List header, Uint32List target, [int startNonce = 0]) {
-    this.work = new Work.fromHeader(header, target, startNonce);
+  Miner.fromHeader(Uint32List header, Uint32List target, {int expires: 0, int nonce: 0}) {
+    this.work = new Work.fromHeader(header, target, nonce: nonce, expires: expires);
   }
   
   /**
@@ -39,13 +36,13 @@ class Miner {
   /**
    * Mine for the nonce.
    */
-  Map<String, String> mine([done]) {
+  Map<String, String> mine([bool reverseWords = true]) {
     
     // Perform a hash check every 1M cycles.
     int hashCheck = 1000000;
     
     // Record the last time.
-    int lastTime = (new DateTime.now()).millisecondsSinceEpoch ~/ 1000;
+    int lastTime = now();
     
     // Iterate while there is more work to be done.
     while(work.hasWork() && !work.checkNonce()) {
@@ -55,7 +52,17 @@ class Miner {
       
       // Print an update...
       if ((work.nonce % hashCheck) == 0) {
-        int thisTime = (new DateTime.now()).millisecondsSinceEpoch ~/ 1000;
+        
+        // Get the current time.
+        int thisTime = now();
+        
+        // Make sure our mining has not expired.
+        if (work.expired(thisTime)) {
+          print('Mining expired.');
+          break;
+        }
+        
+        // Determine the hash rate and print.
         int hashRate = hashCheck ~/ (thisTime - lastTime);
         print('HashRate: ' + hashRate.toString() + ' H/s  Nonce: ' + work.nonce.toString());
         lastTime = thisTime;
@@ -63,6 +70,6 @@ class Miner {
     }
     
     // Return the work response.
-    return work.response();
+    return work.response(reverseWords);
   }
 }
