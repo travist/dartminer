@@ -1,10 +1,7 @@
 Dartminer - An example bitcoin mining package written in Dart.
 -----------------------------------------------------------------
 This is an example application of how to build a Bitcoin mining application
-using the Dart language.  This library is really for reference only and is
-not intended for live use within a bitcoin mining system.  In fact, it doesn't
-actually publish the solution to the solved blockchain if it finds one, but 
-rather just prints out that it found one.  I also recommend only using this
+using the Dart language.  I also recommend only using this
 application using the TestNet within Bitcoin so that you do not risk of 
 hitting the live network with sample code.
 
@@ -21,7 +18,9 @@ Below is the steps necessary to get this to work.
  - Install the Bitcoin-Qt client by going to https://bitcoin.org/en/download
  - Ensure that you run Bitcoin-Qt in testnet mode by following the guide http://suffix.be/blog/getting-started-bitcoin-testnet
  - Add this project to your library and then use the following code to mine bitcoins.
- 
+
+Mining with getwork.
+===================== 
 ```dart
 import 'package:dartminer/dartminer.dart';
  
@@ -58,5 +57,51 @@ void main() {
   });
 }
 ```
- 
- Enjoy...
+
+Mining with getblocktemplate
+============================
+
+```dart
+// Import the dartminer package.
+import 'package:dartminer/dartminer.dart';
+
+// Our main file
+void main() {  
+  
+  // Create a bitcoin client with the proper configuration.  
+  Bitcoin bitcoin = new Bitcoin({
+    "scheme": "http",
+    "host": "127.0.0.1",
+    "port": 18332,
+    "user": "bitcoinrpc",
+    "pass": "123123123123123"
+  });
+    
+  // Get work from the bitcoind.
+  bitcoin.getblocktemplate().then((dynamic tpl) {
+    
+    // Create the new template.
+    Template template = new Template.fromJSON(tpl, address: '1N438cAaGjY9cyZ5J5hgvixkch3hiu6XA1');
+    
+    // Mine for gold.
+    Map<String, String> result = template.mine();
+    
+    // See if there is a result.
+    if (result != null) {
+      
+      // We found gold!
+      print('GOLD!');
+      
+      // Print the result.
+      print(result);
+      
+      // Submit the block.
+      bitcoin.submitblock(params: [result['data']]);
+    }
+  });
+}
+```
+
+Donations Welcome:  1N438cAaGjY9cyZ5J5hgvixkch3hiu6XA1
+
+Enjoy...
