@@ -13,6 +13,9 @@ void main() {
     "pass": "123123123123123"
   });
   
+  int nonce = 0;
+  String prevHash = '';
+  
   // Mine for gold.
   void mineForGold() {
     
@@ -23,10 +26,15 @@ void main() {
       print(tpl);
       
       // Create the new template.
-      Template template = new Template.fromJSON(tpl, address: '1N438cAaGjY9cyZ5J5hgvixkch3hiu6XA1');
+      Template template = new Template.fromJSON(tpl, address: 'mrvHE9WB1YzSKdXM271MKo5tKskLhbSaBn');
+      
+      // Reset the nonce if the previousblock hash isn't the same.
+      if (prevHash != tpl['previousblockhash']) {
+        nonce = 0;
+      }
       
       // Mine for gold.
-      Map<String, String> result = template.mine();
+      Map<String, String> result = template.mine(nonce);
       
       // See if there is a result.
       if (result != null) {
@@ -39,8 +47,15 @@ void main() {
         
         // Submit the block.
         bitcoin.submitblock(params: [result['data']]);
+        nonce = 0;
       }
-      
+      else {
+        
+        // Save the nonce in case the merkle root is the same next pass.
+        nonce = template.miner.work.nonce;
+        prevHash = tpl['previousblockhash'];
+      }
+     
       // Mine for more gold!
       mineForGold();
     });

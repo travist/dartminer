@@ -26,6 +26,9 @@ class Template {
   // The list of mutations.
   Map<String, bool> mutations;
   
+  // The miner for the template.
+  Miner miner;
+  
   /**
    * Create a new template from JSON.
    */
@@ -85,7 +88,6 @@ class Template {
     // Initialize the variables.
     Map<String, String> result = null;
     Uint32List data = null;
-    Miner miner = null;
     
     // Iterate while we are still creating blocks.
     while (createBlock()) {

@@ -64,7 +64,7 @@ class Miner {
         
         // Determine the hash rate and print.
         int hashRate = hashCheck ~/ (thisTime - lastTime);
-        print('HashRate: ' + hashRate.toString() + ' H/s  Nonce: ' + work.nonce.toString());
+        print('HashRate: ' + hashRate.toString() + ' H/s  Nonce: 0x' + work.nonce.toRadixString(16));
         lastTime = thisTime;
       }
     }
