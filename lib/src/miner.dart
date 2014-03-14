@@ -5,13 +5,16 @@ class Miner {
   // The work for the miner.
   Work work;
   
+  // Set the hash check number.
+  int hashCheck = 0;
+  
   /**
    * Constructor.
    * 
    * @param Map work
    *   The JSON map of the work.
    */
-  Miner.fromJSON(Map<String, String> work, {int expires: 120, int nonce: 0}) {
+  Miner.fromJSON(Map<String, String> work, {int expires: 120, int nonce: 0, int this.hashCheck: 1000000}) {
     this.work = new Work.fromJSON(work, nonce: nonce, expires: expires);
   }
   
@@ -24,7 +27,7 @@ class Miner {
    * @param int startNonce
    *   The nonce to start with.
    */
-  Miner.fromHeader(Uint32List header, Uint32List target, {int expires: 120, int nonce: 0}) {
+  Miner.fromHeader(Uint32List header, Uint32List target, {int expires: 120, int nonce: 0, int this.hashCheck: 1000000}) {
     this.work = new Work.fromHeader(header, target, nonce: nonce, expires: expires);
   }
   
@@ -37,9 +40,6 @@ class Miner {
    * Mine for the nonce.
    */
   Map<String, String> mine([bool reverseWords = true]) {
-    
-    // Perform a hash check every 1M cycles.
-    int hashCheck = 1000000;
     
     // Record the last time.
     int lastTime = now();

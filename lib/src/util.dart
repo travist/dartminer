@@ -246,14 +246,3 @@ String doubleHash(String hex) {
   h2.add(h1.close());
   return Crypto.CryptoUtils.bytesToHex(h2.close());
 }
-
-// Gets the JSON from a file.
-Future<dynamic> getJSON(String fileName) {
-  Completer completer = new Completer();
-  var file = new File(fileName);
-  Future<String> finishedReading = file.readAsString(encoding: ASCII);
-  finishedReading.then((String content) {
-    completer.complete(JSON.decode(content));
-  });
-  return completer.future;
-}

@@ -1,13 +1,12 @@
 library dartminer;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:math';
-import 'package:utf/utf.dart' as UTF;
 import 'package:crypto/crypto.dart' as Crypto;
 
+part 'src/bcrequest.dart';
 part 'src/util.dart';
 part 'src/block.dart';
 part 'src/sha256.dart';

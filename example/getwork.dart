@@ -1,5 +1,6 @@
 // Import the dartminer package.
 import 'package:dartminer/dartminer.dart';
+import 'package:dartminer/dartrpcminer.dart';
 
 // Our main file
 void main() {  
@@ -11,7 +12,7 @@ void main() {
     "port": 18332,
     "user": "bitcoinrpc",
     "pass": "123123123123123"
-  });
+  }, new RPCRequest());
   
   int nonce = 0;
   String midstate = '';

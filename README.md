@@ -34,7 +34,7 @@ void main() {
     "port": 18332,
     "user": "bitcoinrpc",
     "pass": "123123123123"
-  });
+  }, new RPCRequest());
   
   // Get work from the bitcoind.
   bitcoin.getwork().then((Map<String, String> work) {
@@ -75,7 +75,7 @@ void main() {
     "port": 18332,
     "user": "bitcoinrpc",
     "pass": "123123123123123"
-  });
+  }, new RPCRequest());
     
   // Get work from the bitcoind.
   bitcoin.getblocktemplate().then((dynamic tpl) {

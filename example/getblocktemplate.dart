@@ -1,8 +1,9 @@
 // Import the dartminer package.
 import 'package:dartminer/dartminer.dart';
+import 'package:dartminer/dartrpcminer.dart';
 
 // Our main file
-void main() {  
+void main() {
   
   // Create a bitcoin client with the proper configuration.  
   Bitcoin bitcoin = new Bitcoin({
@@ -10,8 +11,8 @@ void main() {
     "host": "127.0.0.1",
     "port": 18332,
     "user": "bitcoinrpc",
-    "pass": "123123123123123"
-  });
+    "pass": "123123123123123123"
+  }, new RPCRequest());
   
   int nonce = 0;
   String prevHash = '';

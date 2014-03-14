@@ -1,6 +1,8 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartminer/dartminer.dart';
 import 'dart:async';
+import 'dart:io';
+import 'dart:convert';
 
 void main() {
   
@@ -9,6 +11,17 @@ void main() {
     Block block = new Block.fromJSON(blockJSON);
     Miner miner = new Miner.fromWork(block.toWork());
     return miner.mine();
+  }
+  
+  // Gets the JSON from a file.
+  Future<dynamic> getJSON(String fileName) {
+    Completer completer = new Completer();
+    var file = new File(fileName);
+    Future<String> finishedReading = file.readAsString(encoding: ASCII);
+    finishedReading.then((String content) {
+      completer.complete(JSON.decode(content));
+    });
+    return completer.future;
   }
   
   // Test getting the merkle root.
