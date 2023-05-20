@@ -1,9 +1,8 @@
 part of dartminer;
 
 class Coinbase {
-  
-  String data;
-  
+  late String data;
+
   /**
    * Create a new coinbase provided the scriptsig, value, and address.
    * 
@@ -17,56 +16,55 @@ class Coinbase {
    *   The base58 Bitcoin address to send the value.
    */
   Coinbase(String script, int value, String address) {
-    
     // Create a new string buffer.
     StringBuffer buffer = new StringBuffer();
     String pubKey = addressToPubKey(address);
-    
+
     // txn version
     buffer.write('01000000');
-    
+
     // txn in-counter
     buffer.write('01');
-    
+
     // input[0] prev hash
     buffer.write('0000000000000000000000000000000000000000000000000000000000000000');
-    
+
     // input[0] prev seqnum
     buffer.write('ffffffff');
-    
+
     // input[0] script length;
     buffer.write(int2VarIntHex(script.length ~/ 2));
-    
+
     // input[0] script
     buffer.write(script);
-    
+
     // input[0] seqnum
     buffer.write('ffffffff');
-    
+
     // out-counter
     buffer.write('01');
-    
+
     // output[0] value (little endian)
     buffer.write(word2LEHex(value));
-    
+
     // output[0] script length
     buffer.write(int2VarIntHex(pubKey.length ~/ 2));
-    
+
     // output[0] script.
     buffer.write(pubKey);
-    
+
     // lock-time
     buffer.write('00000000');
-    
+
     // Assign the data to the buffer string.
     data = buffer.toString();
   }
-  
+
   /**
    * Create a new coinbase from data already provided.
    */
   Coinbase.fromData(String this.data);
-  
+
   /**
    * Convert a Base58 Bitcoin address to its Hash-160 ASCII Hex
    * 
@@ -81,9 +79,9 @@ class Coinbase {
     address = reverseString(address);
     int hash = 0;
     for (int i = 0; i < address.length; i++) {
-      hash += pow(58, i) * table.indexOf(address[i]);
+      hash += pow(58, i) * table.indexOf(address[i]) as int;
     }
-    
+
     // Return the hash160.
     String hash160 = hash.toRadixString(16);
     return hash160.substring(0, (hash160.length - 8));
@@ -100,15 +98,15 @@ class Coinbase {
    */
   String addressToPubKey(String address) {
     StringBuffer buffer = new StringBuffer();
-    buffer.write('76');   // OP_DUP
-    buffer.write('a9');   // OP_HASH160
-    buffer.write('14');   // push 20 bytes
+    buffer.write('76'); // OP_DUP
+    buffer.write('a9'); // OP_HASH160
+    buffer.write('14'); // push 20 bytes
     buffer.write(addressToHash160(address));
-    buffer.write('88');   // OP_EQUALVERIFY
-    buffer.write('ac');   // OP_CHECKSIG
+    buffer.write('88'); // OP_EQUALVERIFY
+    buffer.write('ac'); // OP_CHECKSIG
     return buffer.toString();
   }
-  
+
   /**
    * Return the data provided an extranonce.
    * 
@@ -123,12 +121,12 @@ class Coinbase {
     if (extranonce == 0) {
       return data;
     }
-    
+
     // Get the original length;
     int origLen = int.parse(data.substring(82, 84), radix: 16);
     int newLen = origLen + 8;
     int offset = 84 + (origLen * 2);
-    
+
     // Create a new string buffer.
     StringBuffer coinbase = new StringBuffer();
     coinbase.write(data.substring(0, 82));

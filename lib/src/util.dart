@@ -10,10 +10,7 @@ part of dartminer;
  *   The integer with all of the bytes reversed.
  */
 int reverseBytesInHalfWord(int halfword) {
-  return (
-    ((halfword >> 8) & 0xFF) |
-    ((halfword & 0xFF) << 8)
-  );
+  return (((halfword >> 8) & 0xFF) | ((halfword & 0xFF) << 8));
 }
 
 /**
@@ -26,12 +23,7 @@ int reverseBytesInHalfWord(int halfword) {
  *   The integer with all of the bytes reversed.
  */
 int reverseBytesInWord(int word) {
-  return (
-      ((word << 24) & 0xFF000000) |
-      ((word <<  8) & 0x00FF0000) |
-      ((word >>  8) & 0x0000FF00) |
-      ((word >> 24) & 0x000000FF)
-  );
+  return (((word << 24) & 0xFF000000) | ((word << 8) & 0x00FF0000) | ((word >> 8) & 0x0000FF00) | ((word >> 24) & 0x000000FF));
 }
 
 /**
@@ -44,16 +36,14 @@ int reverseBytesInWord(int word) {
  *   The integer with all of the bytes reversed.
  */
 int reverseBytesInBigWord(int bigword) {
-  return (
-   ((bigword & 0xFF00000000000000) >> 56) | 
-   ((bigword & 0x00FF000000000000) >> 40) | 
-   ((bigword & 0x0000FF0000000000) >> 24) | 
-   ((bigword & 0x000000FF00000000) >> 8) | 
-   ((bigword & 0x00000000FF000000) << 8) |
-   ((bigword & 0x0000000000FF0000) << 24) | 
-   ((bigword & 0x000000000000FF00) << 40) |
-   ((bigword & 0x00000000000000FF) << 56)
-  );
+  return (((bigword & 0xFF00000000000000) >> 56) |
+      ((bigword & 0x00FF000000000000) >> 40) |
+      ((bigword & 0x0000FF0000000000) >> 24) |
+      ((bigword & 0x000000FF00000000) >> 8) |
+      ((bigword & 0x00000000FF000000) << 8) |
+      ((bigword & 0x0000000000FF0000) << 24) |
+      ((bigword & 0x000000000000FF00) << 40) |
+      ((bigword & 0x00000000000000FF) << 56));
 }
 
 /**
@@ -66,12 +56,11 @@ int reverseBytesInBigWord(int bigword) {
  *   The length that the string should be.
  */
 String padNumString(String num, int len) {
-  
   // If the length is the same return the string.
   if (num.length == len) {
     return num;
   }
-  
+
   // Append a '0' to the beginning of the string.
   StringBuffer buf = new StringBuffer();
   for (int i = len; i > num.length; i--) {
@@ -99,7 +88,7 @@ String bigword2LEHex(int bigword) => padNumString(toHex(reverseBytesInBigWord(bi
  *   The bytes in reversed form.
  */
 String reverseBytes(String hex) {
-  return Crypto.CryptoUtils.bytesToHex(hex2CodeUnits(hex).reversed.toList());
+  return bytesToHex(hex2CodeUnits(hex).reversed.toList());
 }
 
 /**
@@ -114,14 +103,11 @@ String reverseBytes(String hex) {
 String int2VarIntHex(int x) {
   if (x < 0xfd) {
     return byte2LEHex(x);
-  }
-  else if (x <= 0xffff) {
+  } else if (x <= 0xffff) {
     return 'fd' + halfWord2LEHex(x);
-  }
-  else if (x <= 0xffffffff) {
+  } else if (x <= 0xffffffff) {
     return 'fe' + word2LEHex(x);
-  }
-  else {
+  } else {
     return 'ff' + bigword2LEHex(x);
   }
 }
@@ -193,7 +179,7 @@ List<int> hex2CodeUnits(String hex) {
     hex = '0' + hex;
   }
   int listSize = hex.length ~/ 2;
-  List<int> arr = new List(listSize);
+  List<int> arr = [listSize];
   int index = 0;
   int word = 0;
   for (var i = 0; i < hex.length; i += 2) {
@@ -240,9 +226,15 @@ String reverseString(String str) {
  *   The double-hashed hexidecimal string.
  */
 String doubleHash(String hex) {
-  Crypto.SHA256 h1 = new Crypto.SHA256();
-  Crypto.SHA256 h2 = new Crypto.SHA256();
-  h1.add(hex2CodeUnits(hex));
-  h2.add(h1.close());
-  return Crypto.CryptoUtils.bytesToHex(h2.close());
+  Digest h1 = sha256.convert(hex.codeUnits);
+  Digest h2 = sha256.convert(h1.toString().codeUnits);
+  return h2.toString();
+}
+
+String bytesToHex(List<int> bytes) {
+  var result = new StringBuffer();
+  for (var part in bytes) {
+    result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
+  }
+  return result.toString();
 }
