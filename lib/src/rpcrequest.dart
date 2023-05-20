@@ -4,48 +4,37 @@ part of dartrpcminer;
  * The RPCRequest.
  */
 class RPCRequest implements BCRequest {
-  
-  HttpClient client;
-  
+  late HttpClient client;
+
   /**
    * Initialize.
    */
   RPCRequest() {
-    
     // Create the client.
     client = new HttpClient();
   }
-  
+
   /**
    * Make a request.
    */
-  void request(Completer completer, Uri uri, String message) {
-    
-    // Make sure we are connected.
-    client.postUrl(uri).then((HttpClientRequest req) {
-      
-      // Set the request headers and send the message.
-      req.headers.add(HttpHeaders.CONTENT_TYPE, 'application/json');
-      req.contentLength = message.length;
-      req.write(message);
-      return req.close();
-    }).then((HttpClientResponse res) {
-      
-      // Listen to the response.
-      res.listen((data) {
-        
-        // Parse the response.
-        dynamic result = JSON.decode(UTF.codepointsToString(data));
-        
-        // If the result is set, then complete the future.
-        if (result["result"] != null) {
-          completer.complete(result["result"]);
-        } else if (result['error'] != null) {
-          completer.completeError(result['error']);
-        }
-      }, onError: (e) {
-        completer.completeError(e);
-      });
-    });
+  Future<dynamic> request(Uri uri, String message) async {
+    final client = Dio();
+
+    Map<String, String> headers = {
+      'User-Agent': 'miner/1.0',
+      'Authorization': 'Basic ' + base64Encode(utf8.encode(uri.authority.split('@')[0])),
+    };
+
+    try {
+      final httpResponse = await client.post(uri.origin, data: message, options: Options(headers: headers));
+      if (httpResponse.statusCode != 200) {
+        return 'HTTP code is ${httpResponse.statusCode}';
+      }
+      return httpResponse.data;
+    } catch (e) {
+      return 'CURL error: $e';
+    } finally {
+      client.close();
+    }
   }
 }

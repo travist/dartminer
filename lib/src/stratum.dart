@@ -4,17 +4,16 @@ part of dartminer;
  * Create the stratum client.
  */
 class Stratum extends Bitcoin {
-  
   /**
    * Constructor for the Stratum server.
    */
-  Stratum(Map<String, String> config) : super(config);
-  
+  Stratum(Map<String, String> config) : super(config, RPCRequest());
+
   /**
    * Subscribe to a stratum server.
    */
   Future<dynamic> subscribe() => call('mining.subscribe');
-  
+
   /**
    * Authorize a new miner.
    * 
@@ -25,7 +24,7 @@ class Stratum extends Bitcoin {
    *   The name of the password for the miner.
    */
   Future<dynamic> authorize(String miner, String password) => call('mining.authorize', params: [miner, password]);
-  
+
   /**
    * Submit the results.
    */
